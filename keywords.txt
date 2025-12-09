@@ -25,6 +25,8 @@ upper	KEYWORD2
 lower	KEYWORD2
 normalized	KEYWORD2
 setDecay	KEYWORD2
+setLinearDecay	KEYWORD2
+setExponentialDecay	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

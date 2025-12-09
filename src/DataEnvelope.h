@@ -19,6 +19,9 @@ public:
   explicit DataEnvelope(float decayAmount);
 
   void setDecay(float decayAmount);
+  // Switch between exponential (default) and linear decay modes
+  void setLinearDecay();
+  void setExponentialDecay();
   void update(float value);
 
   float upper() const;
@@ -35,6 +38,7 @@ private:
   float _lower;
   float _lastValue;
   float _decay;
+  bool _exponential;
   bool _initialized;
 };
 

@@ -85,7 +85,7 @@ DataRange zeroBased(1023.0f);
 
 ### DataEnvelope
 
-`DataEnvelope` tracks a decaying envelope over streaming data. Upper and lower bounds expand to new extremes and then decay toward recent values using a configurable per-update decay amount, yielding a local-in-time range.
+`DataEnvelope` tracks a decaying envelope over streaming data. Upper and lower bounds expand to new extremes and then decay toward recent values using a configurable per-update decay amount, yielding a local-in-time range. Decay is **exponential by default** (shrinks the distance to the latest value by the given fraction each update). You can opt into linear decay via `setLinearDecay()` to subtract/add a fixed amount per update instead.
 
 #### `DataEnvelope()`
 
@@ -98,11 +98,27 @@ Creates an envelope with a per-update decay amount. Higher values decay faster t
 ```cpp
 #include <DataEnvelope.h>
 
-DataEnvelope env(1.0f); // decay 1 unit per update
+DataEnvelope env(0.25f); // exponential: shrink distance to the latest sample by 25% per update
 env.update(sample);
 float lo = env.lower();
 float hi = env.upper();
 float n  = env.normalized(sample);
+
+// Optional: switch to linear decay (useful when working in raw units)
+env.setLinearDecay();
+env.setDecay(1.0f); // subtract/add 1 unit per update
+
+// Switch back to exponential decay when needed
+env.setExponentialDecay();
+
+// Exponential decay works best with values between 0.0f and 1.0f; higher
+// values clamp to 0.0f internally (instant convergence to the latest sample).
+
+Additional DataEnvelope controls:
+- `setDecay(float amount)`: per-update decay amount (fractional for exponential, units for linear)
+- `setLinearDecay()`: switch to linear decay
+- `setExponentialDecay()`: switch to exponential decay (default)
+- `reset()`, `upper()`, `lower()`, `range()`, `normalized()`: same semantics as DataRange
 ```
 
 #### `DataRange(float lower, float upper)`

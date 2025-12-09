@@ -10,18 +10,30 @@
 DataEnvelope::DataEnvelope()
 {
   _decay = 0.0f;
+  _exponential = true;
   reset();
 }
 
 DataEnvelope::DataEnvelope(float decayAmount)
 {
   _decay = decayAmount;
+  _exponential = true;
   reset();
 }
 
 void DataEnvelope::setDecay(float decayAmount)
 {
   _decay = decayAmount;
+}
+
+void DataEnvelope::setLinearDecay()
+{
+  _exponential = false;
+}
+
+void DataEnvelope::setExponentialDecay()
+{
+  _exponential = true;
 }
 
 void DataEnvelope::update(float value)
@@ -47,11 +59,25 @@ void DataEnvelope::update(float value)
   }
 
   // Decay toward the current value by subtracting decay from upper and
-  // adding decay to lower; clamp so they don't cross the last value.
+  // adding decay to lower (linear) or by scaling distance to value (exponential).
   if (_decay > 0.0f)
   {
-    _upper -= _decay;
-    _lower += _decay;
+    if (!_exponential)
+    {
+      _upper -= _decay;
+      _lower += _decay;
+    }
+    else
+    {
+      // exponential: shrink distance to the current value
+      float factor = (1.0f - _decay);
+      if (factor < 0.0f)
+      {
+        factor = 0.0f;
+      }
+      _upper = value + (_upper - value) * factor;
+      _lower = value + (_lower - value) * factor;
+    }
 
     if (_upper < value)
     {

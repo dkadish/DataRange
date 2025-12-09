@@ -448,7 +448,8 @@ int main(int argc, char **argv)
     // DataEnvelope
     RUN_TEST(test_envelope_initializes_on_first_update);
     RUN_TEST(test_envelope_grows_to_new_extremes);
-    RUN_TEST(test_envelope_decays_toward_recent);
+    RUN_TEST(test_envelope_decays_exponential_by_default);
+    RUN_TEST(test_envelope_linear_decay_optional);
     RUN_TEST(test_envelope_normalized);
 
     return UNITY_END();
@@ -492,7 +493,8 @@ void setup()
     // DataEnvelope
     RUN_TEST(test_envelope_initializes_on_first_update);
     RUN_TEST(test_envelope_grows_to_new_extremes);
-    RUN_TEST(test_envelope_decays_toward_recent);
+    RUN_TEST(test_envelope_decays_exponential_by_default);
+    RUN_TEST(test_envelope_linear_decay_optional);
     RUN_TEST(test_envelope_normalized);
 
     UNITY_END();
@@ -530,17 +532,29 @@ void test_envelope_grows_to_new_extremes(void)
     TEST_ASSERT_EQUAL_FLOAT(15.0f, env.range());
 }
 
-void test_envelope_decays_toward_recent(void)
+void test_envelope_decays_exponential_by_default(void)
 {
-    DataEnvelope env(1.0f); // decay per update
+    DataEnvelope env(0.20f); // 20% decay per update (exponential)
     env.update(0.0f);
     env.update(10.0f); // grow upper to 10
-    env.update(10.0f); // decay upper by 1 -> 9
+    env.update(5.0f);  // decay toward 5 by scaling distance
 
-    TEST_ASSERT_EQUAL_FLOAT(0.0f, env.lower());
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 2.6f, env.lower());
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 9.0f, env.upper());
+}
+
+void test_envelope_linear_decay_optional(void)
+{
+    DataEnvelope env(1.0f); // 1 unit per update when linear
+    env.setLinearDecay();
+    env.update(0.0f);
+    env.update(10.0f); // grow upper to 10
+    env.update(10.0f); // decay upper by 1 -> 9, lower by +1 -> 1
+
+    TEST_ASSERT_EQUAL_FLOAT(1.0f, env.lower());
     TEST_ASSERT_EQUAL_FLOAT(9.0f, env.upper());
 
-    env.update(2.0f); // lower grows up via decay, upper decays, then clamp to value if crossed
+    env.update(2.0f); // apply additive decay again, clamp if crossed
     TEST_ASSERT_FLOAT_WITHIN(0.0001f, 2.0f, env.lower());
     TEST_ASSERT_FLOAT_WITHIN(0.0001f, 8.0f, env.upper());
 }
