@@ -10,13 +10,30 @@
 // Constructor
 DataRange::DataRange()
 {
+  _floatLower = false;
   reset();
+}
+
+// Constructor with starting upper bound (lower fixed at 0)
+DataRange::DataRange(float upper)
+{
+  _floatLower = false;
+  _min = 0.0f;
+  _max = (upper < _min) ? _min : upper;
+  _lastValue = _min;
+  _initialized = true;
 }
 
 // Constructor with initial bounds
 DataRange::DataRange(float lower, float upper)
 {
+  _floatLower = true;
   setInitialBounds(lower, upper);
+}
+
+void DataRange::setFloatingLower(bool enable)
+{
+  _floatLower = enable;
 }
 
 // Update bounds with a new value
@@ -26,13 +43,17 @@ void DataRange::update(float value)
 
   if (!_initialized)
   {
-    _min = value;
+    _min = _floatLower ? value : 0.0f;
     _max = value;
+    if (!_floatLower && _max < _min)
+    {
+      _max = _min; // keep max above lower when lower is fixed
+    }
     _initialized = true;
   }
   else
   {
-    if (value < _min)
+    if (_floatLower && value < _min)
     {
       _min = value;
     }
@@ -56,6 +77,7 @@ void DataRange::setInitialBounds(float lower, float upper)
   _min = lower;
   _max = upper;
   _lastValue = lower;
+  _floatLower = true;
   _initialized = true;
 }
 

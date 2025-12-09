@@ -18,6 +18,7 @@ max	KEYWORD2
 range	KEYWORD2
 normalized	KEYWORD2
 setInitialBounds	KEYWORD2
+setFloatingLower	KEYWORD2
 reset	KEYWORD2
 
 #######################################

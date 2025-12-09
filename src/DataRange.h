@@ -18,8 +18,14 @@ public:
   // Constructor
   DataRange();
 
+  // Constructor with starting upper bound (lower fixed at 0)
+  DataRange(float upper);
+
   // Constructor with initial bounds
   DataRange(float lower, float upper);
+
+  // Enable/disable floating lower bound (default: fixed at 0)
+  void setFloatingLower(bool enable);
 
   // Update bounds with a new value
   void update(float value);
@@ -50,6 +56,7 @@ private:
   float _max;
   float _lastValue;
   bool _initialized;
+  bool _floatLower;
 };
 
 #endif

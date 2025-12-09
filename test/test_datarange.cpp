@@ -50,6 +50,24 @@ void test_constructor_with_initial_bounds(void)
     TEST_ASSERT_EQUAL_FLOAT(25.0f, bounds.max());
 }
 
+// Test: Constructor with only upper bound keeps lower at zero (non-floating)
+void test_constructor_upper_only_fixed_lower(void)
+{
+    DataRange bounds(100.0f);
+
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(100.0f, bounds.max());
+    TEST_ASSERT_EQUAL_FLOAT(100.0f, bounds.range());
+
+    bounds.update(-20.0f);
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(100.0f, bounds.max());
+
+    bounds.update(150.0f);
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(150.0f, bounds.max());
+}
+
 // Test: First update sets both min and max
 void test_first_update_sets_min_and_max(void)
 {
@@ -57,9 +75,9 @@ void test_first_update_sets_min_and_max(void)
 
     bounds.update(50.0);
 
-    TEST_ASSERT_EQUAL_FLOAT(50.0, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(0.0, bounds.min());
     TEST_ASSERT_EQUAL_FLOAT(50.0, bounds.max());
-    TEST_ASSERT_EQUAL_FLOAT(0.0, bounds.range());
+    TEST_ASSERT_EQUAL_FLOAT(50.0, bounds.range());
 }
 
 // Test: setInitialBounds primes bounds before any updates
@@ -95,6 +113,32 @@ void test_set_initial_bounds_swapped(void)
     TEST_ASSERT_EQUAL_FLOAT(20.0f, bounds.range());
 }
 
+// Test: default lower stays at zero when floating is disabled
+void test_default_lower_stays_zero(void)
+{
+    DataRange bounds;
+
+    bounds.update(50.0f);
+    bounds.update(25.0f);
+
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(50.0f, bounds.max());
+    TEST_ASSERT_EQUAL_FLOAT(50.0f, bounds.range());
+}
+
+// Test: enabling floating lower midstream allows min to drop
+void test_enable_floating_lower_midstream(void)
+{
+    DataRange bounds;
+
+    bounds.update(50.0f);
+    bounds.setFloatingLower(true);
+    bounds.update(10.0f);
+
+    TEST_ASSERT_EQUAL_FLOAT(10.0f, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(50.0f, bounds.max());
+}
+
 // Test: Update with higher value updates max
 void test_update_higher_value_updates_max(void)
 {
@@ -103,15 +147,17 @@ void test_update_higher_value_updates_max(void)
     bounds.update(50.0);
     bounds.update(75.0);
 
-    TEST_ASSERT_EQUAL_FLOAT(50.0, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(0.0, bounds.min());
     TEST_ASSERT_EQUAL_FLOAT(75.0, bounds.max());
-    TEST_ASSERT_EQUAL_FLOAT(25.0, bounds.range());
+    TEST_ASSERT_EQUAL_FLOAT(75.0, bounds.range());
 }
 
 // Test: Update with lower value updates min
 void test_update_lower_value_updates_min(void)
 {
     DataRange bounds;
+
+    bounds.setFloatingLower(true);
 
     bounds.update(50.0);
     bounds.update(25.0);
@@ -140,6 +186,8 @@ void test_multiple_updates(void)
 {
     DataRange bounds;
 
+    bounds.setFloatingLower(true);
+
     bounds.update(50.0);
     bounds.update(30.0);
     bounds.update(80.0);
@@ -157,6 +205,8 @@ void test_negative_values(void)
 {
     DataRange bounds;
 
+    bounds.setFloatingLower(true);
+
     bounds.update(-50.0);
     bounds.update(-100.0);
     bounds.update(50.0);
@@ -170,6 +220,8 @@ void test_negative_values(void)
 void test_normalized_zero_range(void)
 {
     DataRange bounds;
+
+    bounds.setFloatingLower(true);
 
     bounds.update(50.0);
 
@@ -233,6 +285,8 @@ void test_normalized_constrains_below_min(void)
 {
     DataRange bounds;
 
+    bounds.setFloatingLower(true);
+
     bounds.update(50.0);
     bounds.update(100.0);
 
@@ -286,7 +340,7 @@ void test_after_reset_first_update(void)
     bounds.reset();
     bounds.update(50.0);
 
-    TEST_ASSERT_EQUAL_FLOAT(50.0, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(0.0, bounds.min());
     TEST_ASSERT_EQUAL_FLOAT(50.0, bounds.max());
 }
 
@@ -294,6 +348,8 @@ void test_after_reset_first_update(void)
 void test_floating_point_precision(void)
 {
     DataRange bounds;
+
+    bounds.setFloatingLower(true);
 
     bounds.update(0.123456);
     bounds.update(0.987654);
@@ -307,6 +363,8 @@ void test_large_values(void)
 {
     DataRange bounds;
 
+    bounds.setFloatingLower(true);
+
     bounds.update(1000000.0);
     bounds.update(2000000.0);
 
@@ -319,6 +377,8 @@ void test_large_values(void)
 void test_small_values(void)
 {
     DataRange bounds;
+
+    bounds.setFloatingLower(true);
 
     bounds.update(0.0001);
     bounds.update(0.0002);
@@ -358,9 +418,12 @@ int main(int argc, char **argv)
 
     RUN_TEST(test_constructor_initialization);
     RUN_TEST(test_constructor_with_initial_bounds);
+    RUN_TEST(test_constructor_upper_only_fixed_lower);
     RUN_TEST(test_first_update_sets_min_and_max);
     RUN_TEST(test_set_initial_bounds);
     RUN_TEST(test_set_initial_bounds_swapped);
+    RUN_TEST(test_default_lower_stays_zero);
+    RUN_TEST(test_enable_floating_lower_midstream);
     RUN_TEST(test_update_higher_value_updates_max);
     RUN_TEST(test_update_lower_value_updates_min);
     RUN_TEST(test_update_middle_value_no_change);
@@ -393,9 +456,12 @@ void setup()
 
     RUN_TEST(test_constructor_initialization);
     RUN_TEST(test_constructor_with_initial_bounds);
+    RUN_TEST(test_constructor_upper_only_fixed_lower);
     RUN_TEST(test_first_update_sets_min_and_max);
     RUN_TEST(test_set_initial_bounds);
     RUN_TEST(test_set_initial_bounds_swapped);
+    RUN_TEST(test_default_lower_stays_zero);
+    RUN_TEST(test_enable_floating_lower_midstream);
     RUN_TEST(test_update_higher_value_updates_max);
     RUN_TEST(test_update_lower_value_updates_min);
     RUN_TEST(test_update_middle_value_no_change);

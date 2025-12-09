@@ -37,24 +37,28 @@ DataRange sensorBounds;
 // Optionally set known initial bounds
 // sensorBounds.setInitialBounds(0, 1023);
 
+// If your signal can dip below zero and you want the lower bound to track it,
+// enable floating lower bounds (default keeps lower bound fixed at 0):
+// sensorBounds.setFloatingLower(true);
+
 void setup() {
   Serial.begin(9600);
 }
 
 void loop() {
   int sensorValue = analogRead(A0);
-  
+
   // Update bounds with new value
   sensorBounds.update(sensorValue);
-  
+
   // Get normalized value (0.0 to 1.0)
   float normalized = sensorBounds.normalized();
-  
+
   Serial.print("Raw: ");
   Serial.print(sensorValue);
   Serial.print(" Normalized: ");
   Serial.println(normalized);
-  
+
   delay(100);
 }
 ```
@@ -71,9 +75,19 @@ Creates a new DataRange object with uninitialized bounds.
 DataRange myBounds;
 ```
 
+#### `DataRange(float upper)`
+
+Creates a DataRange with a fixed lower bound of 0 and a starting upper bound. The lower bound does not float in this form.
+
+```cpp
+DataRange zeroBased(1023.0f);
+```
+
 #### `DataRange(float lower, float upper)`
 
 Creates a DataRange with explicitly provided initial bounds. If `lower` is greater than `upper`, the values are swapped.
+
+When you provide a lower bound, the lower bound will float with the data (it can move lower if new data is smaller).
 
 ```cpp
 DataRange calibrated(0.0f, 1023.0f);
@@ -86,6 +100,7 @@ DataRange calibrated(0.0f, 1023.0f);
 Updates the bounds with a new value. If this is the first value, both min and max are set to this value. Otherwise, min and max are updated if necessary.
 
 **Parameters:**
+
 - `value` - The new value to track
 
 ```cpp
@@ -137,6 +152,7 @@ float normalized = sensorBounds.normalized();
 Returns any arbitrary value normalized to a 0.0-1.0 range based on the current bounds.
 
 **Parameters:**
+
 - `value` - The value to normalize
 
 **Returns:** Normalized value between 0.0 and 1.0
@@ -152,6 +168,15 @@ Explicitly sets the initial bounds and marks the range as initialized. If `lower
 ```cpp
 DataRange bounds;
 bounds.setInitialBounds(0.0f, 1023.0f);
+```
+
+#### `void setFloatingLower(bool enable)`
+
+Controls whether the lower bound should stay fixed (default) or float with the data. When disabled, the initial lower bound is assumed to be 0. When enabled, the lower bound will track the lowest observed value.
+
+```cpp
+DataRange bounds;
+bounds.setFloatingLower(true); // allow lower bound to move
 ```
 
 #### `void reset()`
@@ -184,11 +209,13 @@ The DataRange library maintains internal state tracking:
 4. **Initialization State**: Whether any values have been received
 
 When you call `normalized()`, the library:
+
 1. Calculates the range (max - min)
 2. Computes: `(value - min) / range`
 3. Constrains the result to 0.0-1.0
 
 This is particularly useful for:
+
 - Sensor calibration
 - Dynamic range adaptation
 - Auto-scaling visualizations
