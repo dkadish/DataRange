@@ -1,0 +1,24 @@
+#######################################
+# Syntax Coloring Map For DataRange
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+DataRange	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+update	KEYWORD2
+min	KEYWORD2
+max	KEYWORD2
+range	KEYWORD2
+normalized	KEYWORD2
+reset	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
