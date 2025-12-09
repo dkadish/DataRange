@@ -34,6 +34,9 @@ The DataRange library dynamically tracks the minimum and maximum values in a dat
 
 DataRange sensorBounds;
 
+// Optionally set known initial bounds
+// sensorBounds.setInitialBounds(0, 1023);
+
 void setup() {
   Serial.begin(9600);
 }
@@ -66,6 +69,14 @@ Creates a new DataRange object with uninitialized bounds.
 
 ```cpp
 DataRange myBounds;
+```
+
+#### `DataRange(float lower, float upper)`
+
+Creates a DataRange with explicitly provided initial bounds. If `lower` is greater than `upper`, the values are swapped.
+
+```cpp
+DataRange calibrated(0.0f, 1023.0f);
 ```
 
 ### Methods
@@ -132,6 +143,15 @@ Returns any arbitrary value normalized to a 0.0-1.0 range based on the current b
 
 ```cpp
 float normalized = sensorBounds.normalized(someValue);
+```
+
+#### `void setInitialBounds(float lower, float upper)`
+
+Explicitly sets the initial bounds and marks the range as initialized. If `lower` is greater than `upper`, the values are swapped. Useful when you already know the expected sensor range and want normalization to work before the first update.
+
+```cpp
+DataRange bounds;
+bounds.setInitialBounds(0.0f, 1023.0f);
 ```
 
 #### `void reset()`

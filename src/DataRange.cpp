@@ -13,6 +13,12 @@ DataRange::DataRange()
   reset();
 }
 
+// Constructor with initial bounds
+DataRange::DataRange(float lower, float upper)
+{
+  setInitialBounds(lower, upper);
+}
+
 // Update bounds with a new value
 void DataRange::update(float value)
 {
@@ -35,6 +41,22 @@ void DataRange::update(float value)
       _max = value;
     }
   }
+}
+
+// Set initial bounds explicitly
+void DataRange::setInitialBounds(float lower, float upper)
+{
+  if (lower > upper)
+  {
+    float temp = lower;
+    lower = upper;
+    upper = temp;
+  }
+
+  _min = lower;
+  _max = upper;
+  _lastValue = lower;
+  _initialized = true;
 }
 
 // Get the minimum value seen

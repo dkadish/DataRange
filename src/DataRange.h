@@ -18,6 +18,9 @@ public:
   // Constructor
   DataRange();
 
+  // Constructor with initial bounds
+  DataRange(float lower, float upper);
+
   // Update bounds with a new value
   void update(float value);
 
@@ -35,6 +38,9 @@ public:
 
   // Get normalized value for a specific input value
   float normalized(float value) const;
+
+  // Set initial bounds explicitly
+  void setInitialBounds(float lower, float upper);
 
   // Reset the bounds
   void reset();

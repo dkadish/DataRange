@@ -30,6 +30,26 @@ void test_constructor_initialization(void)
     TEST_ASSERT_EQUAL_FLOAT(0.0, bounds.range());
 }
 
+// Test: Constructor with initial bounds initializes values
+void test_constructor_with_initial_bounds(void)
+{
+    DataRange bounds(10.0f, 20.0f);
+
+    TEST_ASSERT_EQUAL_FLOAT(10.0f, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(20.0f, bounds.max());
+    TEST_ASSERT_EQUAL_FLOAT(10.0f, bounds.range());
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, bounds.normalized());
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 0.5f, bounds.normalized(15.0f));
+
+    bounds.update(25.0f);
+    TEST_ASSERT_EQUAL_FLOAT(10.0f, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(25.0f, bounds.max());
+
+    bounds.update(5.0f);
+    TEST_ASSERT_EQUAL_FLOAT(5.0f, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(25.0f, bounds.max());
+}
+
 // Test: First update sets both min and max
 void test_first_update_sets_min_and_max(void)
 {
@@ -40,6 +60,39 @@ void test_first_update_sets_min_and_max(void)
     TEST_ASSERT_EQUAL_FLOAT(50.0, bounds.min());
     TEST_ASSERT_EQUAL_FLOAT(50.0, bounds.max());
     TEST_ASSERT_EQUAL_FLOAT(0.0, bounds.range());
+}
+
+// Test: setInitialBounds primes bounds before any updates
+void test_set_initial_bounds(void)
+{
+    DataRange bounds;
+
+    bounds.setInitialBounds(-5.0f, 5.0f);
+
+    TEST_ASSERT_EQUAL_FLOAT(-5.0f, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(5.0f, bounds.max());
+    TEST_ASSERT_EQUAL_FLOAT(10.0f, bounds.range());
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 0.5f, bounds.normalized(0.0f));
+
+    bounds.update(-10.0f);
+    TEST_ASSERT_EQUAL_FLOAT(-10.0f, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(5.0f, bounds.max());
+
+    bounds.update(6.0f);
+    TEST_ASSERT_EQUAL_FLOAT(-10.0f, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(6.0f, bounds.max());
+}
+
+// Test: setInitialBounds swaps bounds when lower > upper
+void test_set_initial_bounds_swapped(void)
+{
+    DataRange bounds;
+
+    bounds.setInitialBounds(30.0f, 10.0f);
+
+    TEST_ASSERT_EQUAL_FLOAT(10.0f, bounds.min());
+    TEST_ASSERT_EQUAL_FLOAT(30.0f, bounds.max());
+    TEST_ASSERT_EQUAL_FLOAT(20.0f, bounds.range());
 }
 
 // Test: Update with higher value updates max
@@ -304,7 +357,10 @@ int main(int argc, char **argv)
     UNITY_BEGIN();
 
     RUN_TEST(test_constructor_initialization);
+    RUN_TEST(test_constructor_with_initial_bounds);
     RUN_TEST(test_first_update_sets_min_and_max);
+    RUN_TEST(test_set_initial_bounds);
+    RUN_TEST(test_set_initial_bounds_swapped);
     RUN_TEST(test_update_higher_value_updates_max);
     RUN_TEST(test_update_lower_value_updates_min);
     RUN_TEST(test_update_middle_value_no_change);
@@ -336,7 +392,10 @@ void setup()
     UNITY_BEGIN();
 
     RUN_TEST(test_constructor_initialization);
+    RUN_TEST(test_constructor_with_initial_bounds);
     RUN_TEST(test_first_update_sets_min_and_max);
+    RUN_TEST(test_set_initial_bounds);
+    RUN_TEST(test_set_initial_bounds_swapped);
     RUN_TEST(test_update_higher_value_updates_max);
     RUN_TEST(test_update_lower_value_updates_min);
     RUN_TEST(test_update_middle_value_no_change);
