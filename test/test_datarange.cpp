@@ -7,6 +7,7 @@
 #include <unity.h>
 #include <DataRange.h>
 #include <DataEnvelope.h>
+#include <SoftDataEnvelope.h>
 
 // Test fixture - runs before each test
 void setUp(void)
@@ -454,6 +455,14 @@ int main(int argc, char **argv)
     RUN_TEST(test_envelope_constructor_with_bounds_and_decay);
     RUN_TEST(test_envelope_normalized);
 
+    // SoftDataEnvelope
+    RUN_TEST(test_soft_envelope_initializes_on_first_update);
+    RUN_TEST(test_soft_envelope_grows_exponentially_by_default);
+    RUN_TEST(test_soft_envelope_grows_linearly);
+    RUN_TEST(test_soft_envelope_decays_exponential_by_default);
+    RUN_TEST(test_soft_envelope_linear_decay_optional);
+    RUN_TEST(test_soft_envelope_combined_growth_and_decay);
+
     return UNITY_END();
 }
 #else
@@ -500,6 +509,14 @@ void setup()
     RUN_TEST(test_envelope_constructor_with_upper_and_decay);
     RUN_TEST(test_envelope_constructor_with_bounds_and_decay);
     RUN_TEST(test_envelope_normalized);
+
+    // SoftDataEnvelope
+    RUN_TEST(test_soft_envelope_initializes_on_first_update);
+    RUN_TEST(test_soft_envelope_grows_exponentially_by_default);
+    RUN_TEST(test_soft_envelope_grows_linearly);
+    RUN_TEST(test_soft_envelope_decays_exponential_by_default);
+    RUN_TEST(test_soft_envelope_linear_decay_optional);
+    RUN_TEST(test_soft_envelope_combined_growth_and_decay);
 
     UNITY_END();
 }
@@ -595,4 +612,85 @@ void test_envelope_normalized(void)
     TEST_ASSERT_FLOAT_WITHIN(0.001f, 1.0f, env.normalized(10.0f));
     TEST_ASSERT_FLOAT_WITHIN(0.001f, 0.0f, env.normalized(0.0f));
     TEST_ASSERT_FLOAT_WITHIN(0.001f, 0.5f, env.normalized(5.0f));
+}
+
+// ----------------------
+// SoftDataEnvelope Tests
+// ----------------------
+
+void test_soft_envelope_initializes_on_first_update(void)
+{
+    SoftDataEnvelope env(0.1f, 0.1f); // decay 10%, growth 10%
+    env.update(10.0f);
+
+    TEST_ASSERT_EQUAL_FLOAT(10.0f, env.lower());
+    TEST_ASSERT_EQUAL_FLOAT(10.0f, env.upper());
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, env.range());
+}
+
+void test_soft_envelope_grows_exponentially_by_default(void)
+{
+    SoftDataEnvelope env(0.0f, 0.2f); // no decay, 20% exponential growth per update
+    env.update(0.0f);
+    env.update(10.0f); // grow toward 10
+
+    // After one update with 20% growth, distance shrinks to 80%
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 2.0f, env.upper());
+
+    env.update(10.0f); // grow more toward 10
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 6.4f, env.upper());
+}
+
+void test_soft_envelope_grows_linearly(void)
+{
+    SoftDataEnvelope env(0.0f, 1.0f); // no decay, 1 unit linear growth per update
+    env.setLinearGrowth();
+    env.update(0.0f);
+    env.update(10.0f); // grow toward 10
+
+    // After one update with 1 unit linear growth, upper increases by 1
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 1.0f, env.upper());
+
+    env.update(10.0f); // grow more by 1
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 2.0f, env.upper());
+}
+
+void test_soft_envelope_decays_exponential_by_default(void)
+{
+    SoftDataEnvelope env(0.2f, 0.0f); // 20% exponential decay, no growth
+    env.update(0.0f);
+    env.update(10.0f);
+    env.update(5.0f); // decay toward 5
+
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 2.6f, env.lower());
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 9.0f, env.upper());
+}
+
+void test_soft_envelope_linear_decay_optional(void)
+{
+    SoftDataEnvelope env(1.0f, 0.0f); // 1 unit linear decay, no growth
+    env.setLinearDecay();
+    env.update(0.0f);
+    env.update(10.0f);
+    env.update(10.0f); // decay by 1 unit
+
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 1.0f, env.lower());
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 9.0f, env.upper());
+}
+
+void test_soft_envelope_combined_growth_and_decay(void)
+{
+    SoftDataEnvelope env(0.1f, 0.2f); // 10% exponential decay, 20% exponential growth
+    env.update(5.0f);
+    env.update(8.0f); // grow toward 8
+
+    // Growth shrinks gap between 5 and 8 by 20%: 5 + (8-5)*0.8 = 7.4
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 7.4f, env.upper());
+
+    env.update(3.0f); // grow toward 3 and decay toward 3
+
+    // Growth: shrink gap between 5 and 3 by 20%: 5 + (3-5)*0.8 = 3.4
+    // Decay: shrink gap between 7.4 and 3 by 10% (factor 0.9): 3 + (7.4-3)*0.9 = 7.36
+    // After growth, bounds update; lower should be close to 3.4
+    TEST_ASSERT_FLOAT_WITHIN(0.1f, 3.4f, env.lower());
 }

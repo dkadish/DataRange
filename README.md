@@ -126,6 +126,54 @@ Additional DataEnvelope controls:
 - `setLinearDecay()`: switch to linear decay
 - `setExponentialDecay()`: switch to exponential decay (default)
 - `reset()`, `upper()`, `lower()`, `range()`, `normalized()`: same semantics as DataRange
+
+### SoftDataEnvelope
+
+`SoftDataEnvelope` extends `DataEnvelope` by adding soft growth toward new extremes. Instead of immediately jumping the envelope bounds to accommodate new values outside the range, bounds smoothly fade toward new extremes using a configurable per-update growth amount. Both growth and decay support **exponential (default)** and **linear** strategies. This is useful for smoothing noisy signals or creating gradual envelope animations.
+
+#### Constructors
+
+```cpp
+#include <SoftDataEnvelope.h>
+
+// Requires both decay and growth amounts
+SoftDataEnvelope env(0.1f, 0.2f); // 10% exponential decay, 20% exponential growth
+
+// Initialize with upper bound (lower defaults to 0)
+SoftDataEnvelope envUpper(10.0f, 0.1f, 0.2f);
+
+// Initialize with lower/upper bounds and decay/growth
+SoftDataEnvelope envBounds(-5.0f, 5.0f, 0.1f, 0.2f);
+```
+
+#### Growth and Decay Modes
+
+```cpp
+// Exponential decay and growth (default)
+env.setExponentialDecay();
+env.setExponentialGrowth();
+
+// Linear decay and growth
+env.setLinearDecay();
+env.setLinearGrowth();
+
+// Adjust parameters at runtime
+env.setDecay(0.15f);
+env.setGrowth(0.25f);
+```
+
+#### Behavior
+
+- **Exponential Growth**: Distance to new extreme shrinks by the growth fraction each update; `factor = 1.0 - growth`
+- **Linear Growth**: Bounds step toward new extreme by the growth amount each update
+- **Decay & Growth**: Applied in sequence per update—growth first, then decay toward current value
+
+Example: A sensor reading jumps from 5 to 10 with exponential 20% growth and no decay:
+```
+Update 0: bounds = [5, 5]
+Update 1 (value=10): upper grows toward 10, distance shrinks: 5 + (10-5)*0.8 = 9
+Update 2 (value=10): upper grows more: 9 + (10-9)*0.8 = 9.8
+```
 ```
 
 #### `DataRange(float lower, float upper)`

@@ -8,6 +8,7 @@
 
 DataRange	KEYWORD1
 DataEnvelope	KEYWORD1
+SoftDataEnvelope	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -25,8 +26,11 @@ upper	KEYWORD2
 lower	KEYWORD2
 normalized	KEYWORD2
 setDecay	KEYWORD2
+setGrowth	KEYWORD2
 setLinearDecay	KEYWORD2
 setExponentialDecay	KEYWORD2
+setLinearGrowth	KEYWORD2
+setExponentialGrowth	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
