@@ -83,6 +83,28 @@ Creates a DataRange with a fixed lower bound of 0 and a starting upper bound. Th
 DataRange zeroBased(1023.0f);
 ```
 
+### DataEnvelope
+
+`DataEnvelope` tracks a decaying envelope over streaming data. Upper and lower bounds expand to new extremes and then decay toward recent values using a configurable per-update decay amount, yielding a local-in-time range.
+
+#### `DataEnvelope()`
+
+Creates an envelope with zero decay (pure tracking, no decay).
+
+#### `DataEnvelope(float decayAmount)`
+
+Creates an envelope with a per-update decay amount. Higher values decay faster toward recent samples.
+
+```cpp
+#include <DataEnvelope.h>
+
+DataEnvelope env(1.0f); // decay 1 unit per update
+env.update(sample);
+float lo = env.lower();
+float hi = env.upper();
+float n  = env.normalized(sample);
+```
+
 #### `DataRange(float lower, float upper)`
 
 Creates a DataRange with explicitly provided initial bounds. If `lower` is greater than `upper`, the values are swapped.

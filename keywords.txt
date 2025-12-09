@@ -7,6 +7,7 @@
 #######################################
 
 DataRange	KEYWORD1
+DataEnvelope	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -20,6 +21,10 @@ normalized	KEYWORD2
 setInitialBounds	KEYWORD2
 setFloatingLower	KEYWORD2
 reset	KEYWORD2
+upper	KEYWORD2
+lower	KEYWORD2
+normalized	KEYWORD2
+setDecay	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

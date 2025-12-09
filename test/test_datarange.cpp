@@ -6,6 +6,7 @@
 
 #include <unity.h>
 #include <DataRange.h>
+#include <DataEnvelope.h>
 
 // Test fixture - runs before each test
 void setUp(void)
@@ -444,6 +445,12 @@ int main(int argc, char **argv)
     RUN_TEST(test_small_values);
     RUN_TEST(test_adc_range);
 
+    // DataEnvelope
+    RUN_TEST(test_envelope_initializes_on_first_update);
+    RUN_TEST(test_envelope_grows_to_new_extremes);
+    RUN_TEST(test_envelope_decays_toward_recent);
+    RUN_TEST(test_envelope_normalized);
+
     return UNITY_END();
 }
 #else
@@ -482,6 +489,12 @@ void setup()
     RUN_TEST(test_small_values);
     RUN_TEST(test_adc_range);
 
+    // DataEnvelope
+    RUN_TEST(test_envelope_initializes_on_first_update);
+    RUN_TEST(test_envelope_grows_to_new_extremes);
+    RUN_TEST(test_envelope_decays_toward_recent);
+    RUN_TEST(test_envelope_normalized);
+
     UNITY_END();
 }
 
@@ -490,3 +503,55 @@ void loop()
     // Nothing to do here
 }
 #endif
+
+// ----------------------
+// DataEnvelope Tests
+// ----------------------
+
+void test_envelope_initializes_on_first_update(void)
+{
+    DataEnvelope env;
+    env.update(10.0f);
+
+    TEST_ASSERT_EQUAL_FLOAT(10.0f, env.lower());
+    TEST_ASSERT_EQUAL_FLOAT(10.0f, env.upper());
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, env.range());
+}
+
+void test_envelope_grows_to_new_extremes(void)
+{
+    DataEnvelope env;
+    env.update(10.0f);
+    env.update(20.0f);
+    env.update(5.0f);
+
+    TEST_ASSERT_EQUAL_FLOAT(5.0f, env.lower());
+    TEST_ASSERT_EQUAL_FLOAT(20.0f, env.upper());
+    TEST_ASSERT_EQUAL_FLOAT(15.0f, env.range());
+}
+
+void test_envelope_decays_toward_recent(void)
+{
+    DataEnvelope env(1.0f); // decay per update
+    env.update(0.0f);
+    env.update(10.0f); // grow upper to 10
+    env.update(10.0f); // decay upper by 1 -> 9
+
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, env.lower());
+    TEST_ASSERT_EQUAL_FLOAT(9.0f, env.upper());
+
+    env.update(2.0f); // lower grows up via decay, upper decays, then clamp to value if crossed
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 2.0f, env.lower());
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 8.0f, env.upper());
+}
+
+void test_envelope_normalized(void)
+{
+    DataEnvelope env(1.0f);
+    env.update(0.0f);
+    env.update(10.0f);
+
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, 1.0f, env.normalized(10.0f));
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, 0.0f, env.normalized(0.0f));
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, 0.5f, env.normalized(5.0f));
+}
