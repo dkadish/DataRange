@@ -85,7 +85,7 @@ DataRange zeroBased(1023.0f);
 
 ### DataEnvelope
 
-`DataEnvelope` tracks a decaying envelope over streaming data. Upper and lower bounds expand to new extremes and then decay toward recent values using a configurable per-update decay amount, yielding a local-in-time range. Decay is **exponential by default** (shrinks the distance to the latest value by the given fraction each update). You can opt into linear decay via `setLinearDecay()` to subtract/add a fixed amount per update instead.
+`DataEnvelope` tracks a decaying envelope over streaming data. Upper and lower bounds expand to new extremes and then decay toward recent values using a configurable per-update decay amount, yielding a local-in-time range. Decay is **exponential by default** (shrinks the distance to the latest value by the given fraction each update). You can opt into linear decay via `setLinearDecay()` to subtract/add a fixed amount per update instead. All constructors require a decay amount. Constructors mirror `DataRange`: with a fixed upper bound (lower pinned at 0), or with explicit lower/upper bounds (lower/upper are swapped if provided inverted).
 
 #### `DataEnvelope()`
 
@@ -103,6 +103,13 @@ env.update(sample);
 float lo = env.lower();
 float hi = env.upper();
 float n  = env.normalized(sample);
+
+// Initialize with an upper bound and decay (lower defaults to 0)
+DataEnvelope envUpper(10.0f, 0.1f); // start at [0,10], exponential decay 10%
+
+// Initialize with lower/upper bounds and decay; switch to linear mode
+DataEnvelope envBounds(-5.0f, 5.0f, 1.0f); // start at [-5,5], exponential decay
+envBounds.setLinearDecay(); // switch to linear decay of 1 unit/update
 
 // Optional: switch to linear decay (useful when working in raw units)
 env.setLinearDecay();

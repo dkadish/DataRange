@@ -15,8 +15,9 @@
 class DataEnvelope
 {
 public:
-  DataEnvelope();
   explicit DataEnvelope(float decayAmount);
+  DataEnvelope(float upper, float decayAmount);
+  DataEnvelope(float lower, float upper, float decayAmount);
 
   void setDecay(float decayAmount);
   // Switch between exponential (default) and linear decay modes

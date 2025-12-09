@@ -450,6 +450,8 @@ int main(int argc, char **argv)
     RUN_TEST(test_envelope_grows_to_new_extremes);
     RUN_TEST(test_envelope_decays_exponential_by_default);
     RUN_TEST(test_envelope_linear_decay_optional);
+    RUN_TEST(test_envelope_constructor_with_upper_and_decay);
+    RUN_TEST(test_envelope_constructor_with_bounds_and_decay);
     RUN_TEST(test_envelope_normalized);
 
     return UNITY_END();
@@ -495,6 +497,8 @@ void setup()
     RUN_TEST(test_envelope_grows_to_new_extremes);
     RUN_TEST(test_envelope_decays_exponential_by_default);
     RUN_TEST(test_envelope_linear_decay_optional);
+    RUN_TEST(test_envelope_constructor_with_upper_and_decay);
+    RUN_TEST(test_envelope_constructor_with_bounds_and_decay);
     RUN_TEST(test_envelope_normalized);
 
     UNITY_END();
@@ -557,6 +561,29 @@ void test_envelope_linear_decay_optional(void)
     env.update(2.0f); // apply additive decay again, clamp if crossed
     TEST_ASSERT_FLOAT_WITHIN(0.0001f, 2.0f, env.lower());
     TEST_ASSERT_FLOAT_WITHIN(0.0001f, 8.0f, env.upper());
+}
+
+void test_envelope_constructor_with_upper_and_decay(void)
+{
+    DataEnvelope env(10.0f, 0.2f); // upper initialized to 10, decay 20%, exponential
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, env.lower());
+    TEST_ASSERT_EQUAL_FLOAT(10.0f, env.upper());
+
+    env.update(5.0f); // decay toward 5
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 1.0f, env.lower());
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 9.0f, env.upper());
+}
+
+void test_envelope_constructor_with_bounds_and_decay(void)
+{
+    DataEnvelope env(-5.0f, 5.0f, 1.0f);
+    env.setLinearDecay();
+    TEST_ASSERT_EQUAL_FLOAT(-5.0f, env.lower());
+    TEST_ASSERT_EQUAL_FLOAT(5.0f, env.upper());
+
+    env.update(0.0f);
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, -4.0f, env.lower());
+    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 4.0f, env.upper());
 }
 
 void test_envelope_normalized(void)

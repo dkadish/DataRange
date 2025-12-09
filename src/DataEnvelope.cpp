@@ -7,18 +7,37 @@
 #endif
 #include "DataEnvelope.h"
 
-DataEnvelope::DataEnvelope()
-{
-  _decay = 0.0f;
-  _exponential = true;
-  reset();
-}
-
 DataEnvelope::DataEnvelope(float decayAmount)
 {
   _decay = decayAmount;
   _exponential = true;
   reset();
+}
+
+DataEnvelope::DataEnvelope(float upper, float decayAmount)
+{
+  _decay = decayAmount;
+  _exponential = true;
+  _lower = 0.0f;
+  _upper = (upper < _lower) ? _lower : upper;
+  _lastValue = _lower;
+  _initialized = true;
+}
+
+DataEnvelope::DataEnvelope(float lower, float upper, float decayAmount)
+{
+  _decay = decayAmount;
+  _exponential = true;
+  if (lower > upper)
+  {
+    float tmp = lower;
+    lower = upper;
+    upper = tmp;
+  }
+  _lower = lower;
+  _upper = upper;
+  _lastValue = lower;
+  _initialized = true;
 }
 
 void DataEnvelope::setDecay(float decayAmount)
