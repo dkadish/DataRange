@@ -13,9 +13,15 @@
 */
 
 #include <DataRange.h>
+#include <DataEnvelope.h>
+#include <SoftDataEnvelope.h>
 
-// Create a DataRange object
+// Track raw bounds for calibration
 DataRange sensorBounds;
+// Quick envelope (fast attack, decays toward recent values)
+DataEnvelope fastEnv(0.1f); // 10% exponential decay per update
+// Soft envelope (slower attack toward peaks + decay)
+SoftDataEnvelope softEnv(0.05f, 0.15f); // 5% decay, 15% growth (exponential)
 
 const int sensorPin = A0;
 const int ledPin = 9;
@@ -47,6 +53,8 @@ void loop()
 
   // Update bounds
   sensorBounds.update(sensorValue);
+  fastEnv.update(sensorValue);
+  softEnv.update(sensorValue);
 
   // Check if we're still calibrating
   if (calibrating)
@@ -67,11 +75,13 @@ void loop()
   }
   else
   {
-    // Get normalized value (0.0 to 1.0)
-    float normalized = sensorBounds.normalized();
+    // Normalized values (raw range, fast envelope, soft envelope)
+    float rangeNorm = sensorBounds.normalized();
+    float fastNorm = fastEnv.normalized(sensorValue);
+    float softNorm = softEnv.normalized(sensorValue);
 
     // Convert to PWM range (0-255)
-    int brightness = (int)(normalized * 255);
+    int brightness = (int)(softNorm * 255); // drive LED with softened envelope
 
     // Set LED brightness
     analogWrite(ledPin, brightness);
@@ -79,8 +89,12 @@ void loop()
     // Print values
     Serial.print("Sensor: ");
     Serial.print(sensorValue);
-    Serial.print("\t Normalized: ");
-    Serial.print(normalized, 3);
+    Serial.print("\t RangeNorm: ");
+    Serial.print(rangeNorm, 3);
+    Serial.print("\t FastEnvNorm: ");
+    Serial.print(fastNorm, 3);
+    Serial.print("\t SoftEnvNorm: ");
+    Serial.print(softNorm, 3);
     Serial.print("\t LED Brightness: ");
     Serial.println(brightness);
   }
