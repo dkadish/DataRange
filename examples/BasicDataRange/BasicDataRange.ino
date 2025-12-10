@@ -53,19 +53,19 @@ void loop()
   float softEnvNorm = softEnv.normalized(sensorValue);
 
   // Print the results
-  Serial.print("Raw: ");
+  Serial.print("Raw:");
   Serial.print(sensorValue);
-  Serial.print("\t Min: ");
+  Serial.print(",Min:");
   Serial.print(minValue);
-  Serial.print("\t Max: ");
+  Serial.print(",Max:");
   Serial.print(maxValue);
-  Serial.print("\t Range: ");
+  Serial.print(",Range:");
   Serial.print(range);
-  Serial.print("\t RangeNorm: ");
+  Serial.print(",RangeNorm:");
   Serial.print(normalized, 3);
-  Serial.print("\t EnvNorm: ");
+  Serial.print(",EnvNorm:");
   Serial.print(envNorm, 3);
-  Serial.print("\t SoftEnvNorm: ");
+  Serial.print(",SoftEnvNorm:");
   Serial.println(softEnvNorm, 3);
 
   // Wait before next reading

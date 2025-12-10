@@ -87,15 +87,15 @@ void loop()
     analogWrite(ledPin, brightness);
 
     // Print values
-    Serial.print("Sensor: ");
+    Serial.print("Sensor:");
     Serial.print(sensorValue);
-    Serial.print("\t RangeNorm: ");
+    Serial.print(",RangeNorm:");
     Serial.print(rangeNorm, 3);
-    Serial.print("\t FastEnvNorm: ");
+    Serial.print(",FastEnvNorm:");
     Serial.print(fastNorm, 3);
-    Serial.print("\t SoftEnvNorm: ");
+    Serial.print(",SoftEnvNorm:");
     Serial.print(softNorm, 3);
-    Serial.print("\t LED Brightness: ");
+    Serial.print(",LED Brightness:");
     Serial.println(brightness);
   }
 
